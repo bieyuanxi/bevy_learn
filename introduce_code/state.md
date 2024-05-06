@@ -47,8 +47,6 @@ fn menu(mut next_state: ResMut<NextState<AppState>>) {
 ### Run systems OnEnter/OnExit/OnTransition state
 This system runs when we enter `AppState::Menu`, during the `StateTransition` schedule. 
 
-All systems from the exit schedule of the state we're leaving are run first, and then all systems from the enter schedule of the state we're entering are run second.
-
 ```rust
 app.add_systems(OnEnter(AppState::Menu), setup_menu)
     .add_systems(OnExit(AppState::Menu), cleanup_menu)
@@ -59,18 +57,10 @@ app.add_systems(OnEnter(AppState::Menu), setup_menu)
     }, log_system)
 ```
 
-Because `ScheduleLabel`s should derive `Hash`, any schedule labels with diverse hash values are **totally different labels**. For example, the following two `OnTransition` labels below have nothing in common! That means no time pays to determine which system should run!
-```rust
-OnTransition {
-    from: AppState::Menu,
-    to: AppState::Ingame,
-}
+All systems from the exit schedule of the state we're leaving are run first, and then all systems from the enter schedule of the state we're entering are run second.
 
-OnTransition {
-    from: AppState::Ingame,
-    to: AppState::Menu,
-}
-```
+*`OnEnter` is called first when app starts up.
+
 
 ### Run systems only in a specific state
 Run the system only if in that state. See bevy `common_conditions` for more info. Examples are `state_changed`, `in_state`, `state_exists`.
@@ -79,8 +69,8 @@ Run the system only if in that state. See bevy `common_conditions` for more info
 app.add_systems(Update, menu.run_if(in_state(AppState::Menu)))
 ```
 
-### Run systems when state changed using `StateTransitionEvent`
-You can read the events when state change happens. Notice that any state change will send a event, you should filter those you don't care about.
+### Use `StateTransitionEvent` to read state change
+You can read the events when state change happens.
 ```rust
 /// print when an `AppState` transition happens
 fn log_transitions(mut transitions: EventReader<StateTransitionEvent<AppState>>) {
@@ -93,6 +83,11 @@ fn log_transitions(mut transitions: EventReader<StateTransitionEvent<AppState>>)
     }
 }
 ```
+
+Notice that any state change will send a event, you should filter those you don't care about.
+
+`StateTransitionEvent` is sent when a schedule called `StateTransition` runs, which runs right after `PreUpdate`. So `PreUpdate` can only get the event in next frame.
+
 
 ## What's the difference between `OnTransition` and `StateTransitionEvent`?
 `OnTransition` is a schedule label with exactly the `from` and `to`. All systems in that schedule run only if both `from` and `to` match.
@@ -127,7 +122,7 @@ In general, use `OnTransition` if you want systems to run when specific state ch
 
 
 # Source code
-State in bevy is implemented using `Resource`s: `<State<S>` and `NextState<S>`.
+State in bevy is implemented using `Resource`s: `State<S>` and `NextState<S>`.
 
 Event `StateTransitionEvent<S>`
 
@@ -135,10 +130,36 @@ Macro `States`
 
 Trait `States`.
 
+## State Initialize
+`Resource`s: `State<S>` and `NextState<S>` are initialized.
+
+Event `StateTransitionEvent<S>` is added.
+
+`run_enter_schedule::<S>` and `apply_state_transition::<S>` runs in `StateTransition`. `run_enter_schedule::<S>` runs `OnEnter<S>` schedule exactly once. 
 
 
+## State Transition
+State transition schedule runs in the following order:`First`->`PreUpdate`->`StateTransition`->`RunFixedMainLoop`->`Update`->`SpawnScene`->`PostUpdate`->`Last`
 
-## Deref & DerefMut
+`apply_state_transition::<S>` runs `OnExit`->`OnTransition`->`OnEnter` in order.
+
+
+Because `ScheduleLabel`s should derive `Hash`, any schedule labels with diverse hash values are **totally different labels**. For example, the following two `OnTransition` labels below have nothing in common! That means no time pays to determine which system should run!
+```rust
+OnTransition {
+    from: AppState::Menu,
+    to: AppState::Ingame,
+}
+
+OnTransition {
+    from: AppState::Ingame,
+    to: AppState::Menu,
+}
+```
+
+
+## Deref & DerefMut in Res
+Allow directly access value in `Res` 
 ### get() in Res
 ```rust
 change_detection_impl!(ResMut<'w, T>, T, Resource);
@@ -150,4 +171,5 @@ change_detection_mut_impl!(ResMut<'w, T>, T, Resource);
 ```
 
 # Ref
-[Official `State` example](https://github.com/bevyengine/bevy/blob/main/examples/ecs/state.rs)
+* [Official `State` example](https://github.com/bevyengine/bevy/blob/main/examples/ecs/state.rs)
+* [Bevy Cheat Book](https://bevy-cheatbook.github.io/programming/states.html#states)
