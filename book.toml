@@ -1,0 +1,6 @@
+[book]
+authors = ["Terra"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Bevy Learn Notes"

@@ -2,8 +2,8 @@
 `State` allows you to define your app state. You can do sth before/after state changed. 
 
 
-# How to use
-## Define your own state
+## How to use
+### Define your own state
 First on first, you need to define your state and derive necessary traits for it, which are `Clone + PartialEq + Eq + Hash + Debug + Default (or FromWorld)`. Usually an `enum` is used.
 
 Don't worry, after you derive `States`, the compiler will give the notes which are missing:).
@@ -15,7 +15,7 @@ enum AppState {
     InGame,
 }
 ```
-## Declare it with the App
+### Declare it with the App
 Then you announce your state when config app. Use either `init_state()` or `insert_state()`.
 ```rust
 // init state with a default value.
@@ -25,10 +25,10 @@ app.insert_state(AppState::Menu);
 ```
 After that, you can use your state now!
 
-## Just use it!
+### Just use it!
 Here gives some examples about how to integrate your state in app.
 
-### Get/Read current state in `system`
+#### Get/Read current state in `system`
 In systems, you can read your state by using `Res<State<YourOwnState>`. But notice that you can only get the value instead of gaving a new value.
 ```rust
 fn menu(state: Res<State<AppState>>) {
@@ -36,7 +36,7 @@ fn menu(state: Res<State<AppState>>) {
 }
 ```
 
-### Update state in `system`
+#### Update state in `system`
 In systems you can change your state by using the mutable resource `ResMut<NextState<AppState>>`. Then use the `.set()` function.
 ```rust
 fn menu(mut next_state: ResMut<NextState<AppState>>) {
@@ -44,7 +44,7 @@ fn menu(mut next_state: ResMut<NextState<AppState>>) {
 }
 ```
 
-### Run systems OnEnter/OnExit/OnTransition state
+#### Run systems OnEnter/OnExit/OnTransition state
 This system runs when we enter `AppState::Menu`, during the `StateTransition` schedule. 
 
 ```rust
@@ -62,14 +62,14 @@ All systems from the exit schedule of the state we're leaving are run first, and
 *`OnEnter` is called first when app starts up.
 
 
-### Run systems only in a specific state
+#### Run systems only in a specific state
 Run the system only if in that state. See bevy `common_conditions` for more info. Examples are `state_changed`, `in_state`, `state_exists`.
 ```rust
 // Check the value of the `State<T>` resource to see if they should run.
 app.add_systems(Update, menu.run_if(in_state(AppState::Menu)))
 ```
 
-### Use `StateTransitionEvent` to read state change
+#### Use `StateTransitionEvent` to read state change
 You can read the events when state change happens.
 ```rust
 /// print when an `AppState` transition happens
@@ -89,7 +89,7 @@ Notice that any state change will send a event, you should filter those you don'
 `StateTransitionEvent` is sent when a schedule called `StateTransition` runs, which runs right after `PreUpdate`. So `PreUpdate` can only get the event in next frame.
 
 
-## What's the difference between `OnTransition` and `StateTransitionEvent`?
+### What's the difference between `OnTransition` and `StateTransitionEvent`?
 `OnTransition` is a schedule label with exactly the `from` and `to`. All systems in that schedule run only if both `from` and `to` match.
 ```rust
 #[derive(ScheduleLabel, Clone, Debug, PartialEq, Eq, Hash)]
@@ -117,11 +117,11 @@ pub struct StateTransitionEvent<S: States> {
 
 In general, use `OnTransition` if you want systems to run when specific state changes. Use `StateTransitionEvent` if you have interests in what value the state is and was.
 
-# Use case
+## Use case
 
 
 
-# Source code
+## Source code
 State in bevy is implemented using `Resource`s: `State<S>` and `NextState<S>`.
 
 Event `StateTransitionEvent<S>`
@@ -130,7 +130,7 @@ Macro `States`
 
 Trait `States`.
 
-## State Initialize
+### State Initialize
 `Resource`s: `State<S>` and `NextState<S>` are initialized.
 
 Event `StateTransitionEvent<S>` is added.
@@ -138,7 +138,7 @@ Event `StateTransitionEvent<S>` is added.
 `run_enter_schedule::<S>` and `apply_state_transition::<S>` runs in `StateTransition`. `run_enter_schedule::<S>` runs `OnEnter<S>` schedule exactly once. 
 
 
-## State Transition
+### State Transition
 State transition schedule runs in the following order:`First`->`PreUpdate`->`StateTransition`->`RunFixedMainLoop`->`Update`->`SpawnScene`->`PostUpdate`->`Last`
 
 `apply_state_transition::<S>` runs `OnExit`->`OnTransition`->`OnEnter` in order.
@@ -158,18 +158,18 @@ OnTransition {
 ```
 
 
-## Deref & DerefMut in Res
+### Deref & DerefMut in Res
 Allow directly access value in `Res` 
-### get() in Res
+#### get() in Res
 ```rust
 change_detection_impl!(ResMut<'w, T>, T, Resource);
 ```
 
-### set() in Res
+#### set() in Res
 ```rust
 change_detection_mut_impl!(ResMut<'w, T>, T, Resource);
 ```
 
-# Ref
+## Ref
 * [Official `State` example](https://github.com/bevyengine/bevy/blob/main/examples/ecs/state.rs)
 * [Bevy Cheat Book](https://bevy-cheatbook.github.io/programming/states.html#states)
