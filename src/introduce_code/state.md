@@ -1,5 +1,7 @@
 # State Introduce
-`State` allows you to define your app state. You can do sth before/after state changed. 
+`State` allows you to define your app state. You can access current state, set a new state. Or do sth between state transition. 
+
+Only one instance of each different state type is created in bevy. You will know why after reading the rest.
 
 
 ## How to use
