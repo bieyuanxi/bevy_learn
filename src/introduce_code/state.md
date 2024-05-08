@@ -124,6 +124,10 @@ In general, use `OnTransition` if you want systems to run when specific state ch
 
 
 ## Source code
+
+> Adds `State<S>` and `NextState<S>` resources, `OnEnter` and `OnExit` schedules for each state variant (if they don't already exist), an instance of `apply_state_transition::<S>` in
+`StateTransition` so that transitions happen before `Update` and a instance of `run_enter_schedule::<S>` in `StateTransition` with a `run_once` condition to run the on enter schedule of the initial state.
+
 State in bevy is implemented using `Resource`s: `State<S>` and `NextState<S>`.
 
 Event `StateTransitionEvent<S>`
