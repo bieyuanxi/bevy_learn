@@ -1,5 +1,7 @@
 # Event
-`Event` 
+`Event`: A type that can be stored in an `Events<E>` resource. You can conveniently access events using the `EventReader` and `EventWriter` system parameter.
+
+Note that event update is applied on `First` schedule.
 
 
 ## How to use
