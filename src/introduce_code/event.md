@@ -3,6 +3,17 @@
 
 Note that event update is applied on `First` schedule.
 
+Bevy ensures that events are kept around for at least two frame update cycles, or two fixed timestep cycles, whichever is longer. In `TimePlugin`:
+```rust
+// ensure the events are not dropped until `FixedMain` systems can observe them
+app.init_resource::<EventUpdateSignal>()
+    .add_systems(
+        First,
+        bevy_ecs::event::reset_event_update_signal_system.after(EventUpdates),
+    )
+    .add_systems(FixedPostUpdate, signal_event_update_system);
+```
+
 
 ## How to use
 1. Define your event type and derive `Event`.
@@ -106,4 +117,4 @@ a.start_event_count  b.start_event_count
 
 # Ref
 * [Official `Event` example](https://github.com/bevyengine/bevy/blob/main/examples/ecs/event.rs)
-[]()
+[Bevy Cheat Book](https://bevy-cheatbook.github.io/programming/events.html)
